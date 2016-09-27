@@ -54,6 +54,21 @@ class BaseMao{
 
 	}
 
+	remove(id){
+		var self = this;
+
+		return pxhr.post(`/api/delete-${this.type}`,{key: id}).then(r => {
+			setTimeout(function(){
+				self.notify({
+					type: "delete",
+					entity: Object.assign({id: id})
+				});
+			}, 0);
+			return r;
+		});
+
+	}
+
 	list(conditions){
 		return pxhr.get(`/api/list-${this.type}`).then(result => result.list);
 

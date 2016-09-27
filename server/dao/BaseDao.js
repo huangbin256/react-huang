@@ -93,6 +93,13 @@ class BaseDao{
 
 		return db.query(sql,vals).then(r => (r.rows.length > 0)?r.rows.map(entity => pruneNulls(entity)):null);
 	}	
+
+	remove(key){
+		var tableInfo = this._getInfo();
+		
+		var sql = `delete from "${tableInfo.name}" where ${tableInfo.key} = $1`;
+		return db.query(sql,[key]).then(r => key);
+	}
 }
 
 // --------- BaseDao Utilities --------- //

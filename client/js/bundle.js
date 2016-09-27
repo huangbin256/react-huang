@@ -40,7 +40,7 @@ var ContactsView = exports.ContactsView = function (_React$Component) {
 
 		var self = _this;
 		_this.contactMao = (0, _mao.mao)("contact");
-		self.state = { data: [] };
+		self.state = { data: [], showDialog: false };
 		return _this;
 	}
 
@@ -49,14 +49,61 @@ var ContactsView = exports.ContactsView = function (_React$Component) {
 		value: function componentDidMount() {
 			var self = this;
 
+			this.dataChangeListenId = this.contactMao.listen(this.dataChange.bind(this));
+
 			this.contactMao.list().then(function (contacts) {
 				contacts = contacts || [];
-				console.log(contacts);
+				self.setState({ data: contacts });
+			});
+		}
+	}, {
+		key: 'componentWillUnmount',
+		value: function componentWillUnmount() {
+			this.contactMao.unlisten(this.dataChangeListenId);
+		}
+	}, {
+		key: 'dataChange',
+		value: function dataChange() {
+			var self = this;
+			this.contactMao.list().then(function (contacts) {
+				contacts = contacts || [];
 				self.setState({ data: contacts });
 			});
 		}
 
 		// --------- UI Events --------- //
+
+	}, {
+		key: 'handleClickAdd',
+		value: function handleClickAdd() {
+			this.setState({ showDialog: true });
+		}
+	}, {
+		key: 'handleClickEdit',
+		value: function handleClickEdit(item) {
+
+			var createProps = this.refs.contactDialog.getInputValues();
+		}
+	}, {
+		key: 'handleClickDelete',
+		value: function handleClickDelete(item) {
+			this.contactMao.remove(item.props.idx);
+		}
+	}, {
+		key: 'handleDialogClose',
+		value: function handleDialogClose() {
+			this.setState({ showDialog: false });
+		}
+	}, {
+		key: 'handleDialogSave',
+		value: function handleDialogSave() {
+			var self = this;
+			var createProps = this.refs.contactDialog.getInputValues();
+			this.contactMao.create(createProps).then(function () {
+				self.setState({ showDialog: false });
+			});
+		}
+
 		// --------- /UI Events --------- //
 
 	}, {
@@ -64,7 +111,9 @@ var ContactsView = exports.ContactsView = function (_React$Component) {
 		value: function render() {
 			var self = this;
 			var contacts = this.state.data;
-			console.log(contacts);
+			var ifShowDialog = !this.state.showDialog ? null : _react2.default.createElement(ContactDialog, { ref: 'contactDialog', onCancel: this.handleDialogClose.bind(this),
+				onSave: this.handleDialogSave.bind(this) });
+
 			return _react2.default.createElement(
 				'div',
 				{ className: 'ContactsView' },
@@ -75,6 +124,11 @@ var ContactsView = exports.ContactsView = function (_React$Component) {
 						'h1',
 						null,
 						'Contacts List'
+					),
+					_react2.default.createElement(
+						'div',
+						{ className: 'btn btn-primary', onClick: this.handleClickAdd.bind(this) },
+						'Add'
 					)
 				),
 				_react2.default.createElement(
@@ -82,11 +136,13 @@ var ContactsView = exports.ContactsView = function (_React$Component) {
 					{ className: 'content' },
 					contacts.map(function (contact, idx) {
 						return _react2.default.createElement(ContactItem, { key: contact.id,
-							idx: idx,
-							eid: contact.id,
-							email: contact.email });
+							idx: contact.id,
+							email: contact.email,
+							onEdit: self.handleClickEdit.bind(self),
+							onDelete: self.handleClickDelete.bind(self) });
 					})
-				)
+				),
+				ifShowDialog
 			);
 		}
 	}]);
@@ -107,9 +163,21 @@ var ContactItem = function (_React$Component2) {
 	}
 
 	// --------- Data Update Methods --------- //
-	// --------- /Data Update Methods --------- //
+
 
 	_createClass(ContactItem, [{
+		key: 'handleEdit',
+		value: function handleEdit() {
+			this.props.onEdit(this);
+		}
+	}, {
+		key: 'handleDel',
+		value: function handleDel() {
+			this.props.onDelete(this);
+		}
+		// --------- /Data Update Methods --------- //
+
+	}, {
 		key: 'render',
 		value: function render() {
 			return _react2.default.createElement(
@@ -122,6 +190,16 @@ var ContactItem = function (_React$Component2) {
 						'span',
 						{ className: 'email' },
 						this.props.email
+					),
+					_react2.default.createElement(
+						'span',
+						{ className: 'btn btn-default hide', onClick: this.handleEdit.bind(this) },
+						'Edit'
+					),
+					_react2.default.createElement(
+						'span',
+						{ className: 'btn btn-danger', onClick: this.handleDel.bind(this) },
+						'Delete'
 					)
 				)
 			);
@@ -132,9 +210,125 @@ var ContactItem = function (_React$Component2) {
 }(_react2.default.Component);
 
 ContactItem.propTypes = {
-	"eid": _react2.default.PropTypes.number,
 	"idx": _react2.default.PropTypes.number,
-	"email": _react2.default.PropTypes.string
+	"email": _react2.default.PropTypes.string,
+	onEdit: _react2.default.PropTypes.func,
+	onDelete: _react2.default.PropTypes.func
+};
+
+var ContactDialog = function (_React$Component3) {
+	_inherits(ContactDialog, _React$Component3);
+
+	function ContactDialog(props) {
+		_classCallCheck(this, ContactDialog);
+
+		var _this3 = _possibleConstructorReturn(this, (ContactDialog.__proto__ || Object.getPrototypeOf(ContactDialog)).call(this, props));
+
+		_this3.state = {};
+		return _this3;
+	}
+
+	_createClass(ContactDialog, [{
+		key: 'getInputValues',
+		value: function getInputValues() {
+			var result = {};
+			result.id = this.props.id;
+			result.email = this.refs.email.value;
+			result.firstName = this.refs.firstName.value;
+			result.lastName = this.refs.lastName.value;
+			return result;
+		}
+	}, {
+		key: 'render',
+		value: function render() {
+			return _react2.default.createElement(
+				'div',
+				{ className: 'ContactDialog modal show' },
+				_react2.default.createElement(
+					'div',
+					{ className: 'modal-dialog' },
+					_react2.default.createElement(
+						'div',
+						{ className: 'modal-content' },
+						_react2.default.createElement(
+							'div',
+							{ className: 'modal-header' },
+							_react2.default.createElement(
+								'button',
+								{ type: 'button', className: 'close', onClick: this.props.onCancel.bind(this) },
+								_react2.default.createElement(
+									'span',
+									null,
+									'×'
+								)
+							),
+							_react2.default.createElement(
+								'h4',
+								{ className: 'modal-title' },
+								'Contact Edit'
+							)
+						),
+						_react2.default.createElement(
+							'div',
+							{ className: 'modal-body' },
+							_react2.default.createElement(
+								'div',
+								{ className: 'form-group' },
+								_react2.default.createElement(
+									'label',
+									null,
+									'Email address'
+								),
+								_react2.default.createElement('input', { type: 'email', ref: 'email', className: 'form-control', placeholder: 'Email Address' })
+							),
+							_react2.default.createElement(
+								'div',
+								{ className: 'form-group' },
+								_react2.default.createElement(
+									'label',
+									null,
+									'First Name'
+								),
+								_react2.default.createElement('input', { type: 'text', ref: 'firstName', className: 'form-control', placeholder: 'First Name' })
+							),
+							_react2.default.createElement(
+								'div',
+								{ className: 'form-group' },
+								_react2.default.createElement(
+									'label',
+									null,
+									'Last Name'
+								),
+								_react2.default.createElement('input', { type: 'text', ref: 'lastName', className: 'form-control', placeholder: 'Last Name' })
+							)
+						),
+						_react2.default.createElement(
+							'div',
+							{ className: 'modal-footer' },
+							_react2.default.createElement(
+								'button',
+								{ type: 'button', className: 'btn btn-default', onClick: this.props.onCancel.bind(this) },
+								'Close'
+							),
+							_react2.default.createElement(
+								'button',
+								{ type: 'button', className: 'btn btn-primary', onClick: this.props.onSave.bind(this) },
+								'Save'
+							)
+						)
+					)
+				)
+			);
+		}
+	}]);
+
+	return ContactDialog;
+}(_react2.default.Component);
+
+ContactDialog.propTypes = {
+	id: _react2.default.PropTypes.number,
+	onCancel: function onCancel() {},
+	onSave: function onSave() {}
 };
 
 },{"./mao.js":3,"classnames":5,"react":176,"react-dom":33}],2:[function(require,module,exports){
@@ -222,6 +416,21 @@ var BaseMao = function () {
 					self.notify({
 						type: "update",
 						entity: Object.assign({}, newEntity)
+					});
+				}, 0);
+				return r;
+			});
+		}
+	}, {
+		key: "remove",
+		value: function remove(id) {
+			var self = this;
+
+			return _pxhr2.default.post("/api/delete-" + this.type, { key: id }).then(function (r) {
+				setTimeout(function () {
+					self.notify({
+						type: "delete",
+						entity: Object.assign({ id: id })
 					});
 				}, 0);
 				return r;

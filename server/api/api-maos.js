@@ -52,6 +52,21 @@ routes.push({
 		}
 	}
 });
+
+routes.push({
+	method: 'POST',
+	path:'/api/delete-{type}', 
+	handler: {
+		async: function* (request, reply) {
+			var dao = assertAndGetDao(request, reply);
+
+			console.log("delete-{type}", request.payload);
+			var key = request.payload.key;
+			var result = yield dao.remove(key);
+			reply({success: true, result: result});
+		}
+	}
+});
 // --------- /Generic Dao API --------- //
 
 
