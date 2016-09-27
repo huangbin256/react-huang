@@ -92,7 +92,6 @@ function initServer(){
 	});
 
 	// bind APIs
-	this.load(require('./api/hello.js'));		
 	this.load(require('./api/api-maos.js'));		
 }
 // --------- /App Private Methods --------- //

@@ -95,4 +95,5 @@ class BaseMao{
 
 
 // --------- Register Maos --------- //
+maos["contact"] = new BaseMao("contact");
 // --------- /Register Maos --------- //

@@ -8,23 +8,8 @@ var routes = [];
 // that will be loaded by App in main.js
 module.exports = routes;
 
-// --------- Task Specific API --------- //
-routes.push({
-	method: 'POST',
-	path:'/api/toggle-done-task', 
-	handler: {
-		async: function* (request, reply) {
-			var dao = daos["task"];
-
-			var r = yield dao.toggleDone(+request.payload.id);
-			reply({success: true, updateCount: r});
-		}
-	}
-});
-// --------- /Task Specific API --------- //
 
 // --------- Generic Dao API --------- //
-// Async hello
 routes.push({
 	method: 'GET',
 	path:'/api/list-{type}', 
